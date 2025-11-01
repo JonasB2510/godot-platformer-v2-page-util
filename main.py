@@ -188,4 +188,4 @@ def webhook():
 
 if __name__ == "__main__":
     # Run locally on port 5000
-    app.run(port=5025)
+    app.run(host="0.0.0.0", port=5025)
