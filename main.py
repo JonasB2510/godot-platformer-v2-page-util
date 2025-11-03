@@ -41,7 +41,6 @@ if not os.path.exists(WEBAPP_DIR):
     os.makedirs(WEBAPP_DIR, exist_ok=True)
 if not os.path.exists(TEMP_DIR):
     os.makedirs(TEMP_DIR)
-os.makedirs(os.path.join(EXPORT_TEMPLATES_DIR, VERSION_EXPORT_DIR), exist_ok=True)
 
 def download_file(url, filename):
     """Download a file from GitHub and save it locally."""
@@ -280,6 +279,7 @@ def ensure_export_templates():
     tmp_file = os.path.join(tempfile.gettempdir(), os.path.basename(url))
     download_file2(url, tmp_file)
     extract_archive(tmp_file, EXPORT_TEMPLATES_DIR)
+    os.makedirs(os.path.join(EXPORT_TEMPLATES_DIR, VERSION_EXPORT_DIR), exist_ok=True)
     for a in os.listdir(os.path.join(EXPORT_TEMPLATES_DIR, "templates")):
         shutil.move(os.path.join(os.path.join(EXPORT_TEMPLATES_DIR, "templates", a)), os.path.join(EXPORT_TEMPLATES_DIR, VERSION_EXPORT_DIR))
     os.rmdir(os.path.join(EXPORT_TEMPLATES_DIR, "templates"))
