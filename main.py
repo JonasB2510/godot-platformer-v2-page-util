@@ -1,7 +1,9 @@
 import os
 import re
 import requests
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, abort
+import hmac
+import hashlib
 import zipfile
 import datetime
 import shutil
@@ -12,6 +14,7 @@ import platform
 import urllib.request
 import tarfile
 import tempfile
+import secretkey
 
 # ==== CONFIGURATION ====
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # optional, for private repos
@@ -41,6 +44,25 @@ if not os.path.exists(WEBAPP_DIR):
     os.makedirs(WEBAPP_DIR, exist_ok=True)
 if not os.path.exists(TEMP_DIR):
     os.makedirs(TEMP_DIR)
+
+def verify_github_signature(request):
+    """Verify GitHub webhook HMAC signature."""
+    signature_header = request.headers.get("X-Hub-Signature-256")
+    if not signature_header:
+        abort(400, "Missing signature header")
+
+    sha_name, signature = signature_header.split("=")
+    if sha_name != "sha256":
+        abort(400, "Unsupported hash type")
+
+    # Compute our own HMAC
+    mac = hmac.new(secretkey.secret, msg=request.data, digestmod=hashlib.sha256)
+    expected_signature = mac.hexdigest()
+
+    # Compare securely to avoid timing attacks
+    if not hmac.compare_digest(signature, expected_signature):
+        abort(403, "Invalid signature")
+
 
 def download_file(url, filename):
     """Download a file from GitHub and save it locally."""
@@ -164,6 +186,8 @@ def process_release_publish():
 def webhook():
     event_type = request.headers.get("X-GitHub-Event")
     payload = request.json
+
+    verify_github_signature(request)
 
     if event_type == "push":
         branch = payload.get("ref", "").split("/")[-1]
