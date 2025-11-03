@@ -30,6 +30,7 @@ GODOT_VER = "4.5.1"
 GODOT_EXEC = os.path.join(GODOT_DIR, f"Godot_v{GODOT_VER}-stable_linux.x86_64")
 EXPORT_TEMPLATES_DIR = os.path.expanduser("~/.local/share/godot/export_templates")#"templates"#os.path.expanduser("~/.local/share/godot/export_templates")
 GODOT_DOWNLOAD_ENV = "GODOT_DOWNLOAD"
+VERSION_EXPORT_DIR = f"{GODOT_VER}.stable"
 
 # ========================
 app = Flask(__name__)
@@ -40,6 +41,7 @@ if not os.path.exists(WEBAPP_DIR):
     os.makedirs(WEBAPP_DIR, exist_ok=True)
 if not os.path.exists(TEMP_DIR):
     os.makedirs(TEMP_DIR)
+os.makedirs(os.path.join(EXPORT_TEMPLATES_DIR, VERSION_EXPORT_DIR), exist_ok=True)
 
 def download_file(url, filename):
     """Download a file from GitHub and save it locally."""
@@ -278,10 +280,10 @@ def ensure_export_templates():
     tmp_file = os.path.join(tempfile.gettempdir(), os.path.basename(url))
     download_file2(url, tmp_file)
     extract_archive(tmp_file, EXPORT_TEMPLATES_DIR)
-    #for a in os.listdir(os.path.join(EXPORT_TEMPLATES_DIR, "templates")):
-    #    shutil.move(os.path.join(os.path.join(EXPORT_TEMPLATES_DIR, "templates", a)), EXPORT_TEMPLATES_DIR)
-    #os.rmdir(os.path.join(EXPORT_TEMPLATES_DIR, "templates"))
-    os.rename(os.path.join(EXPORT_TEMPLATES_DIR, "templates"), f"{GODOT_VER}.stable")
+    for a in os.listdir(os.path.join(EXPORT_TEMPLATES_DIR, "templates")):
+        shutil.move(os.path.join(os.path.join(EXPORT_TEMPLATES_DIR, "templates", a)), os.path.join(EXPORT_TEMPLATES_DIR, VERSION_EXPORT_DIR))
+    os.rmdir(os.path.join(EXPORT_TEMPLATES_DIR, "templates"))
+    #os.rename(os.path.join(EXPORT_TEMPLATES_DIR, "templates"), f"{GODOT_VER}.stable")
     print(os.listdir(EXPORT_TEMPLATES_DIR))
     print("Export templates installed.")
 
