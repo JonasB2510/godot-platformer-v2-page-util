@@ -25,8 +25,9 @@ EXCLUDE_FROM_RM = ["debug"]
 GODOT_PATH = "E:\Godot_v4.4.1-stable_win64.exe\Godot_v4.4.1-stable_win64.exe"
 PREFIX_OLD = "platformerv2"
 PREFIX_NEW = "index"
-GODOT_DIR = "/godot"
-GODOT_EXEC = os.path.join(GODOT_DIR, "godot")
+GODOT_DIR = "godot"
+GODOT_VER = "4.5.1"
+GODOT_EXEC = os.path.join(GODOT_DIR, f"Godot_v{GODOT_VER}-stable_linux.x86_64")
 EXPORT_TEMPLATES_DIR = os.path.expanduser("~/.local/share/godot/export_templates")
 GODOT_DOWNLOAD_ENV = "GODOT_DOWNLOAD"
 
@@ -242,8 +243,8 @@ def ensure_godot_installed():
 
     if system == "linux":
         keyword = "linux.x86_64"
-    elif system == "darwin":
-        keyword = "macos.universal"
+    #elif system == "darwin":
+    #    keyword = "macos.universal"
     elif system == "windows":
         keyword = "win64.exe"
     else:
@@ -288,6 +289,7 @@ def main():
 if __name__ == "__main__":
     # Run locally on port 5000+
     if os.getenv(GODOT_DOWNLOAD_ENV) and platform.system().lower() == "linux":
+        GODOT_PATH = GODOT_EXEC
         ensure_godot_installed()
         ensure_export_templates()
     app.run(host="0.0.0.0", port=5025)
