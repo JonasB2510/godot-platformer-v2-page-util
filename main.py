@@ -212,7 +212,7 @@ def download_file(url, dest):
 
 def extract_archive(file_path, dest_dir):
     """Extracts .zip or .tar.* archives."""
-    if file_path.endswith(".zip"):
+    if file_path.endswith((".zip", ".tpz")):
         with zipfile.ZipFile(file_path, 'r') as zip_ref:
             zip_ref.extractall(dest_dir)
     elif file_path.endswith((".tar.xz", ".tar.gz")):
