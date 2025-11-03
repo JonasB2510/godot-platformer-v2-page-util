@@ -78,6 +78,11 @@ def process_branch_zip():
         shutil.rmtree(OUTPUT_DIR)
     os.makedirs(OUTPUT_DIR)
     OUTPUT_FILE = os.path.join(OUTPUT_DIR, "index.html")
+    if platform.system().lower() == "linux":
+        GODOT_PATH = "./" + GODOT_PATH
+        PROJECT_PATH = "./" + PROJECT_PATH
+        EXPORT_PRESET = "./" + EXPORT_PRESET
+        OUTPUT_FILE = "./" + OUTPUT_FILE
     cmd = [
     GODOT_PATH,
     "--headless",                # Run without GUI
