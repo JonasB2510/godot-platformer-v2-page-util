@@ -205,7 +205,7 @@ def get_latest_godot_release():
     assets = data["assets"]
     return version, assets
 
-def download_file(url, dest):
+def download_file2(url, dest):
     """Download a file from URL to destination."""
     print(f"Downloading: {url}")
     urllib.request.urlretrieve(url, dest)
@@ -256,7 +256,7 @@ def ensure_godot_installed():
 
     os.makedirs(GODOT_DIR, exist_ok=True)
     tmp_file = os.path.join(tempfile.gettempdir(), os.path.basename(url))
-    download_file(url, tmp_file)
+    download_file2(url, tmp_file)
     extract_archive(tmp_file, GODOT_DIR)
     print(f"Godot installed to {GODOT_DIR}")
 
@@ -273,7 +273,7 @@ def ensure_export_templates():
 
     os.makedirs(EXPORT_TEMPLATES_DIR, exist_ok=True)
     tmp_file = os.path.join(tempfile.gettempdir(), os.path.basename(url))
-    download_file(url, tmp_file)
+    download_file2(url, tmp_file)
     extract_archive(tmp_file, EXPORT_TEMPLATES_DIR)
     print("Export templates installed.")
 
