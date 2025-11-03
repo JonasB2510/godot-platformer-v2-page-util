@@ -28,7 +28,7 @@ PREFIX_NEW = "index"
 GODOT_DIR = "godot"
 GODOT_VER = "4.5.1"
 GODOT_EXEC = os.path.join(GODOT_DIR, f"Godot_v{GODOT_VER}-stable_linux.x86_64")
-EXPORT_TEMPLATES_DIR = os.path.expanduser("~/.local/share/godot/export_templates")
+EXPORT_TEMPLATES_DIR = os.path.expanduser("~/.local/share/godot/export_templates")#"templates"#os.path.expanduser("~/.local/share/godot/export_templates")
 GODOT_DOWNLOAD_ENV = "GODOT_DOWNLOAD"
 
 # ========================
@@ -79,10 +79,8 @@ def process_branch_zip():
     os.makedirs(OUTPUT_DIR)
     OUTPUT_FILE = os.path.join(OUTPUT_DIR, "index.html")
     if platform.system().lower() == "linux":
-        GODOT_PATH = "./" + GODOT_PATH
-        PROJECT_PATH = "./" + PROJECT_PATH
-        EXPORT_PRESET = "./" + EXPORT_PRESET
-        OUTPUT_FILE = "./" + OUTPUT_FILE
+        os.chmod(GODOT_EXEC, 0o755)
+        GODOT_PATH = os.path.join(os.getcwd(), GODOT_EXEC)
     cmd = [
     GODOT_PATH,
     "--headless",                # Run without GUI
@@ -280,6 +278,11 @@ def ensure_export_templates():
     tmp_file = os.path.join(tempfile.gettempdir(), os.path.basename(url))
     download_file2(url, tmp_file)
     extract_archive(tmp_file, EXPORT_TEMPLATES_DIR)
+    #for a in os.listdir(os.path.join(EXPORT_TEMPLATES_DIR, "templates")):
+    #    shutil.move(os.path.join(os.path.join(EXPORT_TEMPLATES_DIR, "templates", a)), EXPORT_TEMPLATES_DIR)
+    #os.rmdir(os.path.join(EXPORT_TEMPLATES_DIR, "templates"))
+    os.rename(os.path.join(EXPORT_TEMPLATES_DIR, "templates"), f"{GODOT_VER}.stable")
+    print(os.listdir(EXPORT_TEMPLATES_DIR))
     print("Export templates installed.")
 
 def main():
