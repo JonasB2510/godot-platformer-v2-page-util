@@ -8,6 +8,10 @@ import shutil
 import subprocess
 import sys
 from werkzeug.utils import secure_filename
+import platform
+import urllib.request
+import tarfile
+import tempfile
 
 # ==== CONFIGURATION ====
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # optional, for private repos
@@ -21,6 +25,10 @@ EXCLUDE_FROM_RM = ["debug"]
 GODOT_PATH = "E:\Godot_v4.4.1-stable_win64.exe\Godot_v4.4.1-stable_win64.exe"
 PREFIX_OLD = "platformerv2"
 PREFIX_NEW = "index"
+GODOT_DIR = "/godot"
+GODOT_EXEC = os.path.join(GODOT_DIR, "godot")
+EXPORT_TEMPLATES_DIR = os.path.expanduser("~/.local/share/godot/export_templates")
+GODOT_DOWNLOAD_ENV = "GODOT_DOWNLOAD"
 
 # ========================
 app = Flask(__name__)
@@ -185,7 +193,101 @@ def webhook():
 
     return jsonify({"status": "ok"}), 200
 
+def get_latest_godot_release():
+    """Fetch the latest stable Godot version info from GitHub."""
+    import urllib.request
+    import json
+    url = "https://api.github.com/repos/godotengine/godot/releases/latest"
+    with urllib.request.urlopen(url) as response:
+        data = json.load(response)
+    version = data["tag_name"]
+    assets = data["assets"]
+    return version, assets
+
+def download_file(url, dest):
+    """Download a file from URL to destination."""
+    print(f"Downloading: {url}")
+    urllib.request.urlretrieve(url, dest)
+    print(f"Saved to {dest}")
+
+def extract_archive(file_path, dest_dir):
+    """Extracts .zip or .tar.* archives."""
+    if file_path.endswith(".zip"):
+        with zipfile.ZipFile(file_path, 'r') as zip_ref:
+            zip_ref.extractall(dest_dir)
+    elif file_path.endswith((".tar.xz", ".tar.gz")):
+        with tarfile.open(file_path, 'r:*') as tar_ref:
+            tar_ref.extractall(dest_dir)
+    else:
+        raise ValueError(f"Unknown archive format: {file_path}")
+
+def find_asset_url(assets, keyword):
+    """Find asset URL containing a keyword (like 'linux.x86_64' or 'export_templates')."""
+    for a in assets:
+        if keyword in a["name"]:
+            return a["browser_download_url"]
+    return None
+
+# --- Main Logic ---
+
+def ensure_godot_installed():
+    """Ensure Godot binary is downloaded."""
+    if os.path.exists(GODOT_EXEC):
+        print(f"Godot already installed at {GODOT_EXEC}")
+        return
+
+    version, assets = get_latest_godot_release()
+    system = platform.system().lower()
+    arch = platform.machine().lower()
+
+    if system == "linux":
+        keyword = "linux.x86_64"
+    elif system == "darwin":
+        keyword = "macos.universal"
+    elif system == "windows":
+        keyword = "win64.exe"
+    else:
+        raise RuntimeError(f"Unsupported OS: {system}")
+
+    url = find_asset_url(assets, keyword)
+    if not url:
+        raise RuntimeError("Could not find suitable Godot binary to download")
+
+    os.makedirs(GODOT_DIR, exist_ok=True)
+    tmp_file = os.path.join(tempfile.gettempdir(), os.path.basename(url))
+    download_file(url, tmp_file)
+    extract_archive(tmp_file, GODOT_DIR)
+    print(f"Godot installed to {GODOT_DIR}")
+
+def ensure_export_templates():
+    """Ensure export templates are downloaded."""
+    if os.path.exists(EXPORT_TEMPLATES_DIR) and os.listdir(EXPORT_TEMPLATES_DIR):
+        print("Export templates already installed.")
+        return
+
+    version, assets = get_latest_godot_release()
+    url = find_asset_url(assets, "export_templates.tpz")
+    if not url:
+        raise RuntimeError("Could not find export templates for the latest release")
+
+    os.makedirs(EXPORT_TEMPLATES_DIR, exist_ok=True)
+    tmp_file = os.path.join(tempfile.gettempdir(), os.path.basename(url))
+    download_file(url, tmp_file)
+    extract_archive(tmp_file, EXPORT_TEMPLATES_DIR)
+    print("Export templates installed.")
+
+def main():
+    if not os.getenv(GODOT_DOWNLOAD_ENV):
+        print(f"Environment variable {GODOT_DOWNLOAD_ENV} not set — skipping download.")
+        return
+
+    ensure_godot_installed()
+    ensure_export_templates()
+
 
 if __name__ == "__main__":
-    # Run locally on port 5000
+    # Run locally on port 5000+
+    if os.getenv(GODOT_DOWNLOAD_ENV) and platform.system().lower() == "linux":
+        ensure_godot_installed()
+        ensure_export_templates()
     app.run(host="0.0.0.0", port=5025)
