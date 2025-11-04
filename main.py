@@ -209,6 +209,8 @@ def webhook():
                 name = asset.get("name", "")
                 if re.match(r"web.*\.zip$", name):
                     download_url = asset["browser_download_url"]
+                    if not download_url.startswith(f"https://github.com/{AUTHOR}/{PROJECT}/releases/download/"):
+                        break
                     download_file(download_url, "web.zip")
                     process_release_publish()
                     break
