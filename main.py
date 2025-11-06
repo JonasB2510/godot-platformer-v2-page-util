@@ -56,7 +56,7 @@ def verify_github_signature(request):
         abort(400, "Unsupported hash type")
 
     # Compute our own HMAC
-    mac = hmac.new(secretkey.secret, msg=request.data, digestmod=hashlib.sha256)
+    mac = hmac.new(secretkey.secret.encode("utf-8"), msg=request.data, digestmod=hashlib.sha256)
     expected_signature = mac.hexdigest()
 
     # Compare securely to avoid timing attacks
