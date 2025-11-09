@@ -216,6 +216,7 @@ def webhook():
                     if not download_url.startswith(f"https://github.com/{AUTHOR.lower()}/{PROJECT.lower()}/releases/download/"):
                         print("url check failed")
                         break
+                    print(download_url)
                     download_file(download_url, "web.zip")
                     threading.Thread(target=process_release_publish).start()
                     break
