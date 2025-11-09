@@ -212,7 +212,6 @@ def webhook():
                 if re.match(r"web.*\.zip$", name):
                     download_url = asset["browser_download_url"]
                     print(download_url)
-                    download_url = download_url.lower()
                     if not download_url.startswith(f"https://github.com/{AUTHOR.lower()}/{PROJECT.lower()}/releases/download/"):
                         print("url check failed")
                         break
