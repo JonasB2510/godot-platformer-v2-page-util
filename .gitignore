@@ -3,3 +3,4 @@ downloads
 temp
 web
 secretkey.py
+__pycache__

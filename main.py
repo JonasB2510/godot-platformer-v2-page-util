@@ -15,6 +15,7 @@ import urllib.request
 import tarfile
 import tempfile
 import secretkey
+import threading
 
 # ==== CONFIGURATION ====
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")  # optional, for private repos
@@ -78,6 +79,7 @@ def download_file(url, filename):
     return filepath
 
 def process_branch_zip():
+    global GODOT_PATH
     ct = str(datetime.datetime.now())
     ct = ct.replace(" ", "_")
     ct = ct.replace(":", "-")
@@ -192,10 +194,10 @@ def webhook():
     if event_type == "push":
         branch = payload.get("ref", "").split("/")[-1]
         if branch == "main":
-            print("📦 Push to main detected — downloading branch zip...")
+            print(f"📦 Push to main detected — downloading branch zip... from {url}")
             url = f"https://github.com/{REPO}/archive/refs/heads/main.zip"
             download_file(url, "main.zip")
-            process_branch_zip()
+            threading.Thread(target=process_branch_zip).start()
         else:
             print(f"Push to {branch} ignored.")
 
@@ -212,7 +214,7 @@ def webhook():
                     if not download_url.startswith(f"https://github.com/{AUTHOR}/{PROJECT}/releases/download/"):
                         break
                     download_file(download_url, "web.zip")
-                    process_release_publish()
+                    threading.Thread(target=process_release_publish).start()
                     break
             else:
                 print("No matching web*.zip found in release assets.")
@@ -325,7 +327,6 @@ def main():
 if __name__ == "__main__":
     # Run locally on port 5000+
     if os.getenv(GODOT_DOWNLOAD_ENV) and platform.system().lower() == "linux":
-        GODOT_PATH = GODOT_EXEC
         ensure_godot_installed()
         ensure_export_templates()
     app.run(host="0.0.0.0", port=5025)
